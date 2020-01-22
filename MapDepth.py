@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys
 import re
@@ -55,6 +55,12 @@ def GetPhosPlane(pdb,memb):
 
 
 def GetDists(Phos,pdb):
+	"""
+	Calculatoon of the CA - avg phosphate plane distance
+	:param Phos: avg phosphate plane distance
+	:param pdb: a PDB file of a protein/membrane complex
+	:return: a dictionary with key= residue ID; value= dist.
+	"""
 	distDico = {}
 	
 	with open(pdb) as inputfile:
@@ -65,6 +71,14 @@ def GetDists(Phos,pdb):
 	return distDico
 
 def Mapped(pdb,dico):
+	"""
+	Map the dist. on a pdb file
+	:param pdb: a PDB file of a protein/membrane complex
+	:param dico: the dico created by the function GetDists
+	:return: write a pdb file with the depth as the B-factor
+	"""
+
+	output = open("DepthMaped.pdb","w")
 	with open(pdb) as inputfile:
 		for line in inputfile:
 			if "PROA" in line:
@@ -73,7 +87,7 @@ def Mapped(pdb,dico):
 				line = "%s%s"%(line[0:46],extend)
 				line = line.replace("HSD","HIS")
 				line = line.replace("HSE","HIS")
-				print(line[:-1])
+				output.write(line)
 
 if __name__ == '__main__':
 
