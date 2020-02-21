@@ -8,4 +8,4 @@ python MapDepth.py my.pdb
  
 output: a pdb file with the depth instaead of the B-factor. You can use Pymol or Chimera to visualize it:
 
-![](picture/example.png "logo" )
+![](example.png "output" )
