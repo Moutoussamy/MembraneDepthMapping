@@ -7,4 +7,5 @@ Map the depth on a PDB file. The depth here correspond to the distance between t
 python MapDepth.py my.pdb
  
 output: a pdb file with the depth instaead of the B-factor. You can use Pymol or Chimera to visualize it:
-![](pictures/anglelogo.png "logo" )
+
+![](picture/example.png "logo" )
