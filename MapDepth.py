@@ -3,6 +3,7 @@
 import sys
 import re
 import os
+import numpy as np
 
 
 """
@@ -66,8 +67,8 @@ def GetDists(Phos,pdb):
 	with open(pdb) as inputfile:
 		for line in inputfile:
 				if line[12:16].replace(" ","") == "CA":
-					z_courant =  float(line[46:54]) - Phos 
-					distDico[line[22:26]] = z_courant
+					z_courant =  (float(line[46:54]) - Phos) 
+					distDico[int(line[22:26])] = z_courant
 	return distDico
 
 def Mapped(pdb,dico):
@@ -78,16 +79,36 @@ def Mapped(pdb,dico):
 	:return: write a pdb file with the depth as the B-factor
 	"""
 
-	output = open("DepthMaped.pdb","w")
+	pdbout = pdb.replace(".pdb","_mapped.pdb")
+	output = open(pdbout,"w")
+
 	with open(pdb) as inputfile:
 		for line in inputfile:
 			if "PROA" in line:
-				resid = line[22:26]
+				resid = int(line[22:26])
 				extend = line[46:].replace(line[60:66],"%6.2f"%dico[resid])
 				line = "%s%s"%(line[0:46],extend)
 				line = line.replace("HSD","HIS")
 				line = line.replace("HSE","HIS")
 				output.write(line)
+
+def writeDist(dico,pdbname):
+	"""
+	Write the calculated depth in a file
+	:param dico: the dico created by the function GetDists
+	:param pdbname: the name of the input pdb
+	:return: Write the depth in a txt file
+	"""
+
+	txt_file_name = pdbname.replace(".pdb","_depth.txt")
+
+	output = open(txt_file_name,"w")
+
+	for key in dico.keys():
+		if dico[key] <= 5:
+			output.write("{0}\t{1}\n".format(key,dico[key])) # Write the depth only if it is lt. 5
+
+	output.close()
 
 if __name__ == '__main__':
 
@@ -95,3 +116,4 @@ if __name__ == '__main__':
 	Phos = GetPhosPlane(sys.argv[1],memb)	
 	dists = GetDists(Phos,sys.argv[1])
 	Mapped(sys.argv[1],dists)
+	writeDist(dists,sys.argv[1])
