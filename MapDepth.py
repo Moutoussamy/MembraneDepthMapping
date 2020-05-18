@@ -63,11 +63,11 @@ def GetDists(Phos,pdb):
 	:return: a dictionary with key= residue ID; value= dist.
 	"""
 	distDico = {}
-	
+
 	with open(pdb) as inputfile:
 		for line in inputfile:
 				if line[12:16].replace(" ","") == "CA":
-					z_courant =  (float(line[46:54]) - Phos) 
+					z_courant =  (float(line[46:54]) - Phos)
 					distDico[int(line[22:26])] = z_courant
 	return distDico
 
@@ -113,7 +113,7 @@ def writeDist(dico,pdbname):
 if __name__ == '__main__':
 
 	memb = GetMembCenter(sys.argv[1])
-	Phos = GetPhosPlane(sys.argv[1],memb)	
+	Phos = GetPhosPlane(sys.argv[1],memb)
 	dists = GetDists(Phos,sys.argv[1])
 	Mapped(sys.argv[1],dists)
 	writeDist(dists,sys.argv[1])
