@@ -31,15 +31,34 @@ def GetMembCenter(pdb):
 		for line in inputfile:
 			if "ATOM" in line:
 				if line[12:16].replace(" ","") == "P": # only the phosphate are taking into account
-					z_coord.append(float(line[46:54]))
+					z_coord.append(abs(float(line[46:54])))
+
 	return np.mean(z_coord)
 
+
+def GetProtCenter(pdb):
+	"""
+	This function allow to calculate the Prot. center
+	:param pdb: a PDB file of a protein/membrane complex
+	:return: the geometrical center of the prot.
+	"""
+
+	z_coord = []
+
+	with open(pdb) as inputfile:
+		for line in inputfile:
+			if "ATOM" in line:
+				if line[12:16].replace(" ","") == "CA": # only the CA are taking into account
+					print(line)
+					z_coord.append(abs(float(line[46:54])))
+	return np.mean(z_coord)
 
 def GetPhosPlane(pdb,memb):
 	"""
 	Calculation of the average upper phosphate plane
 	:param pdb:  a PDB file of a protein/membrane complex
 	:param memb: the center of geometry calculated by the function GetMembCenter
+	:param Prot: the center of geometry calculated by the function GetprotCenter
 	:return: the average upper phosphate plane
 	"""
 
@@ -49,8 +68,13 @@ def GetPhosPlane(pdb,memb):
 		for line in inputfile:
 			if "ATOM" in line:
 				if line[12:16].replace(" ","") == "P":
-					if float(line[46:54]) > memb:
-						z_phosphate_upper_plane.append(float(line[46:54]))
+
+					if up :
+						if float(line[46:54]) > memb:
+							z_phosphate_upper_plane.append(abs(float(line[46:54])))
+					else:
+						if float(line[46:54]) < memb:
+							z_phosphate_upper_plane.append(abs(float(line[46:54])))
 
 	return np.mean(z_phosphate_upper_plane)
 
@@ -59,7 +83,6 @@ def GetDists(Phos,pdb):
 	"""
 	Calculatoon of the CA - avg phosphate plane distance
 	:param Phos: avg phosphate plane distance
-	:param pdb: a PDB file of a protein/membrane complex
 	:return: a dictionary with key= residue ID; value= dist.
 	"""
 	distDico = {}
@@ -67,7 +90,7 @@ def GetDists(Phos,pdb):
 	with open(pdb) as inputfile:
 		for line in inputfile:
 				if line[12:16].replace(" ","") == "CA":
-					z_courant =  (float(line[46:54]) - Phos)
+					z_courant =  (abs(float(line[46:54])) - Phos)
 					distDico[int(line[22:26])] = z_courant
 	return distDico
 
@@ -105,14 +128,14 @@ def writeDist(dico,pdbname):
 	output = open(txt_file_name,"w")
 
 	for key in dico.keys():
-		if dico[key] <= 5:
-			output.write("{0}\t{1}\n".format(key,dico[key])) # Write the depth only if it is lt. 5
+		output.write("{0}\t{1}\n".format(key,dico[key]))
 
 	output.close()
 
 if __name__ == '__main__':
 
 	memb = GetMembCenter(sys.argv[1])
+	#prot = GetProtCenter(sys.argv[1])
 	Phos = GetPhosPlane(sys.argv[1],memb)
 	dists = GetDists(Phos,sys.argv[1])
 	Mapped(sys.argv[1],dists)
