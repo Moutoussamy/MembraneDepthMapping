@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
-import re
-import os
+import argparse
 import numpy as np
 
 
@@ -16,6 +15,25 @@ __version__  = "1.0.0"
 __date__ = "2020/01"
 __copyright__ = "CC_by_SA"
 __dependencies__ = ""
+
+
+
+def GetArgs():
+	"""
+	Get argument for the calculation using flags
+	:return: argument: log file and pdb
+	"""
+
+	parser = argparse.ArgumentParser(description='Map the depth on a PDB file. The depth, here, correspond to\
+	the distance between the upper phosphate (COM*) plane and the protein (COM).')
+
+	parser.add_argument('-pdb', metavar="pdb", type=str, help= "pdb file")
+	parser.add_argument('-Up', action='store_true', help="Does it bound to the Upperleaflet?")
+	parser.add_argument('-Low',action='store_true', help="Does it bound to the lowerleaflet?")
+
+	args = parser.parse_args()
+
+	return args
 
 
 def GetMembCenter(pdb):
@@ -53,7 +71,7 @@ def GetProtCenter(pdb):
 					z_coord.append(abs(float(line[46:54])))
 	return np.mean(z_coord)
 
-def GetPhosPlane(pdb,memb):
+def GetPhosPlane(pdb,memb,up,low):
 	"""
 	Calculation of the average upper phosphate plane
 	:param pdb:  a PDB file of a protein/membrane complex
@@ -72,7 +90,7 @@ def GetPhosPlane(pdb,memb):
 					if up :
 						if float(line[46:54]) > memb:
 							z_phosphate_upper_plane.append(abs(float(line[46:54])))
-					else:
+					if low:
 						if float(line[46:54]) < memb:
 							z_phosphate_upper_plane.append(abs(float(line[46:54])))
 
@@ -133,10 +151,17 @@ def writeDist(dico,pdbname):
 	output.close()
 
 if __name__ == '__main__':
+	args = GetArgs()  # collect arguments
 
-	memb = GetMembCenter(sys.argv[1])
+	if args.Low == 0 and args.Up == 0:
+		sys.exit('Please specify the leaflet? (-Up or -Low)')
+
+	elif args.Low == 1 and args.Up == 1:
+		sys.exit('The calculation cannot be done on both leaflets')
+
+	memb = GetMembCenter(args.pdb)
 	#prot = GetProtCenter(sys.argv[1])
-	Phos = GetPhosPlane(sys.argv[1],memb)
-	dists = GetDists(Phos,sys.argv[1])
-	Mapped(sys.argv[1],dists)
-	writeDist(dists,sys.argv[1])
+	Phos = GetPhosPlane(args.pdb,memb,args.Up,args.Low)
+	dists = GetDists(Phos,args.pdb)
+	Mapped(args.pdb,dists)
+	writeDist(dists,args.pdb)
